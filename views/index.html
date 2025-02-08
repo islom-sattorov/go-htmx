@@ -1,0 +1,75 @@
+{{ block "index" . }}
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>Contacts</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+  </head>
+  <body>
+    {{ template "form" .Form }} {{template "display" .Data }}
+
+    <script>
+    document.addEventListener("DOMContentLoaded", (event) => {
+      document.body.addEventListener('htmx:beforeSwap', function(evt) {
+        if(evt.detail.xhr.status === 422) {
+          evt.detail.shouldSwap = true;
+          evt.detail.isError = false;
+        }
+      })
+    })
+    </script>
+  </body>
+</html>
+{{ end }}
+<!--  -->
+{{ block "form" . }}
+<form hx-swap="outerHTML" hx-post="/contacts">
+  <label for="name">
+    <input type="text"
+      {{if .Values.name}} value="{{.Values.name}}" {{end}}
+      name="name" id="name" placeholder="Name" required />
+  </label>
+  <label for="email">
+    <input type="email"
+      {{if .Values.email}} value="{{.Values.email}}" {{end}}
+      name="email" id="email" placeholder="Email" required />
+  </label>
+  {{if .Errors.email}}
+    <div style="color: red">{{.Errors.email}}</div>
+  {{end}}
+  <button type="submit">Create Contact</button>
+</form>
+{{ end }}
+<!--  -->
+{{ block "display" .}}
+<div id="contacts">
+  {{ range .Contacts }}
+  {{ template "contact" .}}
+  {{ end }}
+</div>
+{{ end }}
+
+
+{{block "contact" .}}
+<div
+  style="
+    display: flex;
+    padding: 12px;
+    flex-direction: column;
+    border: 1px solid blue;
+    border-radius: 12px;
+    margin-top: 12px;
+  "
+>
+  <div><span>Name:</span> <span>{{ .Name }}</span></div>
+  <div><span>Email:</span> <span>{{ .Email }}</span></div>
+</div>
+{{end}}
+
+{{ block "oob-contact" .}}
+<div id="contacts" hx-swap-oob="afterbegin" >
+  {{ template "contact" . }}
+</div>
+{{end}}
